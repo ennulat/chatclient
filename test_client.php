@@ -27,7 +27,7 @@
 	$i=0;
 	do{
 		$message = 'random message: '.hash('md5',microtime(true));
-		$result =$client->call("SendChatMessage", array(array("dialog_hash" => "a85ba933", "message" => $message)));
+		$result =$client->call("SendChatMessage", array(array("dialog_hash" => "8b27769258c6fcb0fb1322dc3dfe9f7c", "message" => $message)));
 		
 		$soapError = $client->getError();
 		if (!empty($soapError)) {

@@ -50,13 +50,22 @@ $(document).ready(function(){
 								  InitChatRequest();
 								 
 								  var isOperatorOnline = false;
-								  if($('#operator_hash').val() != 'na' && $('#operator_hash').val() != '')
-									  var isOperatorOnline = true;
+								  if($('#operator_available').val() != '0')
+									  var isOperatorAvailable = true;
 
-								  if(isOperatorOnline){
-									//alert('operator is online');
-								  	showView('chat-box')
-								  	GetNewChatMessages();
+								  if(isOperatorAvailable){
+									
+								  	showView('chat-box');
+
+								  	//wait for operator commitment
+								  	$('#LoopObserveOperatorCommitment').val(1)
+								  	if(LoopObserveOperatorCommitment() == true){
+
+										alert($('#operator_hash').val());
+									}
+					
+								  	
+								  	//GetNewChatMessages();
 								  	
 								  	
 								  }else{
@@ -80,12 +89,17 @@ $(document).ready(function(){
 	
 	//here we go...
 	showView('chat-box');
+	Test();
+
+
+
+
+
+	
 	$('#a-getnewmessages').click(function(){
-		$('#operator_hash').val('a85ba933');
+		$('#dialog_hash').val('##########');
 		$('#loopGetNewChatMessages').val(1);
 		LoopGetNewChatMessages(); 
-		 
-		
 	});
 
 	//var timestamp = new Date().getTime();
@@ -96,8 +110,93 @@ $(document).ready(function(){
 	$('#a-cancelgetmess').click(function(){
 		$('#loopGetNewChatMessages').val(0);
 	});
-	
 
+
+	function Test(){
+
+		  //Init chat request
+		  InitChatRequest();
+		 
+		  var isOperatorOnline = false;
+		  if($('#operator_available').val() != '0')
+			  var isOperatorAvailable = true;
+
+		  if(isOperatorAvailable){
+			
+		  	showView('chat-box');	
+
+		  	//wait for operator commitment
+		  	$('#LoopObserveOperatorCommitment').val(1);
+		  	LoopObserveOperatorCommitment();
+			if($('#dialog_status').val() == '2'){//operator has accepted
+			
+				console.log('loopobserv: ' + $('#LoopObserveOperatorCommitment').val());//cancel observer loop
+				console.log('ophash: ' +$('#operator_hash').val());
+				console.log('userhash: ' +$('#user_hash').val());
+
+				//GetNewChatMessages();
+				$('#loopGetNewChatMessages').val(1);
+				LoopGetNewChatMessages(); 
+			}else{
+
+				console.log('something went wrong, loopobservstatus');
+			}
+		  	
+		  }else{
+			alert('operator not available');
+			showView('offline-message-box');
+		  }
+
+	}
+
+	function LoopObserveOperatorCommitment(){
+		setTimeout(function() {
+            if ($('#LoopObserveOperatorCommitment').val() == 0) {
+                return;
+            }
+
+            // Do what you need to do   
+            ObserveOperatorCommitment();
+            
+            LoopObserveOperatorCommitment();
+        }, 500);	
+
+		
+
+	}
+
+	function ObserveOperatorCommitment(){
+	
+		$.ajax({
+			url: 'http://chatclient/nusoap_client.php',
+		    //data: {call: 'ObserveOperatorCommitment', dialog_hash: $('#dialog_hash').val()} ,
+		    data: {call: 'ObserveOperatorCommitment', dialog_hash: $('#dialog_hash').val()} ,
+		    type: 'POST',
+		    dataType: 'JSON',
+		    async: false
+		}).success(function(data){
+			var tmp = data;
+			$.each(tmp, function(key, value){
+				if(key=='status' && value=='2'){//operator has accepted?
+					$('#LoopObserveOperatorCommitment').val(0);//cancel observer loop
+					$('#operator_hash').val(data.operator_hash);
+					$('#dialog_status').val(value);
+				}
+			});
+
+<!--			console.log($('#LoopObserveOperatorCommitment').val());-->
+<!--			console.log($('#operator_hash').val());-->
+<!--			console.log($('#user_hash').val());-->
+<!--			console.log($('#operator_hash').val());-->
+
+		}).fail(function(xHttp, statustext){
+			console.log(statustext);
+			alert(statustext);
+		});
+
+	}
+
+	
 	function LoopGetNewChatMessages(){
 	 	setTimeout(function() {
             if ($('#loopGetNewChatMessages').val() == 0) {
@@ -358,17 +457,20 @@ $(document).ready(function(){
 			request.success(function(data){
 				//alert('successsss');
 				//bind operator_hash and user_hash to hidden fields
-				console.log(data);
+				//console.log(data);
 				$.each(data, function( key, value ) {
 						
-					  if(key == 'operator_hash')
-						  $('#operator_hash').val(value);
-					  else if(key == 'dialog_hash');
-					  	  $('#dialog_hash').val(value);
-					  else if(key == 'user_hash')
-						  $('#user_hash').val(value);
-					  else if(key == 'status')
-						  $('#operator_status').val(value);
+					  if(key == 'dialog_hash'){
+					  	  //$('#dialog_hash').val(value);
+					  	  $('#dialog_hash').val('8b27769258c6fcb0fb1322dc3dfe9f7c');
+					  }
+					  else if(key == 'user_hash'){
+						  //$('#user_hash').val(value);
+						  $('#user_hash').val('482a5181b7d5d84fa57f2677a43d8757');
+					  }
+					  else if(key == 'operator_available'){
+						  $('#operator_available').val(value);
+					  }
 				});
 
 
@@ -431,8 +533,14 @@ $(document).ready(function(){
 			<input type="hidden" id="operator_hash">
 			<input type="hidden" id="user_hash">
 			<input type="hidden" id="dialog_hash">
-			<input type="hidden" id="operator_status">
+			<input type="hidden" id="operator_available">
+			<input type="hidden" id="dialog_status">
+			
+<!--			<input type="hidden" id="operator_status">-->
 			<input type="hidden" id="loopGetNewChatMessages">
+			                         
+			<input type="hidden" id="LoopObserveOperatorCommitment">
+			
 			<input type="hidden" id="lastGetNewChatMessagesTimestamp">
 		
 			<p id="error-message">
