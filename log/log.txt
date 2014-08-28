@@ -1,0 +1,57 @@
+<pre>class: helper | @line:  19array(3) {
+  ["call"]=>
+  string(15) "InitChatRequest"
+  ["name"]=>
+  string(6) "Maurer"
+  ["email"]=>
+  string(16) "maurer@gmail.com"
+}
+</pre><pre>class: helper | @line:  19array(3) {
+  ["call"]=>
+  string(15) "InitChatRequest"
+  ["name"]=>
+  string(6) "Maurer"
+  ["email"]=>
+  string(16) "maurer@gmail.com"
+}
+</pre><pre>class: helper | @line:  19array(3) {
+  ["call"]=>
+  string(15) "InitChatRequest"
+  ["name"]=>
+  string(6) "Maurer"
+  ["email"]=>
+  string(16) "maurer@gmail.com"
+}
+</pre><pre>class: helper | @line:  19array(3) {
+  ["call"]=>
+  string(15) "InitChatRequest"
+  ["name"]=>
+  string(6) "Maurer"
+  ["email"]=>
+  string(16) "maurer@gmail.com"
+}
+</pre><pre>class: helper | @line:  19array(3) {
+  ["call"]=>
+  string(15) "InitChatRequest"
+  ["name"]=>
+  string(6) "Maurer"
+  ["email"]=>
+  string(16) "maurer@gmail.com"
+}
+</pre><pre>class: helper | @line:  19array(3) {
+  ["call"]=>
+  string(15) "InitChatRequest"
+  ["name"]=>
+  string(6) "Maurer"
+  ["email"]=>
+  string(16) "maurer@gmail.com"
+}
+</pre><pre>class: helper | @line:  19array(3) {
+  ["call"]=>
+  string(15) "InitChatRequest"
+  ["name"]=>
+  string(6) "Maurer"
+  ["email"]=>
+  string(16) "maurer@gmail.com"
+}
+</pre>

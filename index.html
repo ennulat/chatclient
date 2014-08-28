@@ -1,0 +1,506 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>chat client</title>
+
+<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+<!--[if lte IE 8]>
+    <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/grids-responsive-old-ie-min.css">
+<![endif]-->
+<!--[if gt IE 8]><!-->
+  
+<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/grids-responsive-min.css">
+ 
+<!--<![endif]-->
+  
+<!--[if lte IE 8]>
+	<link rel="stylesheet" href="css/layouts/marketing-old-ie.css">
+<![endif]-->
+<!--[if gt IE 8]><!-->
+<link rel="stylesheet" href="css/layouts/marketing.css">
+<!--<![endif]-->
+
+<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+<!--<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css" />-->
+
+<style type="text/css">
+
+</style>
+
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+
+	function ViewController(status){
+
+		switch(status){
+			case 'welcome-splash':  showView('auth-form'); break;
+			case 'auth-form': var message = formValidation(); 
+							  if(message != 'ok'){
+							
+								  $('#error-message').html(message);
+								  showView('auth-form&error-message');
+		
+							  }else{
+
+								  //Init chat request
+								  InitChatRequest();
+								 
+								  var isOperatorOnline = false;
+								  if($('#operator_hash').val() != 'na' && $('#operator_hash').val() != '')
+									  var isOperatorOnline = true;
+
+								  if(isOperatorOnline){
+									//alert('operator is online');
+								  	showView('chat-box')
+								  	GetNewChatMessages();
+								  	
+								  	
+								  }else{
+									alert('operator not available');
+									showView('offline-message-box');
+								  }
+							  }
+
+						      break;
+			case 'logoff-chatbox': showView('termination-message-box'); break;
+			case 'send-chatmessage': sendNewChatMessage(); break;
+			//case 'backtoauth-form': showAuthForm(); break;
+			//case 'chat-box': showChatBox(); break;
+			//case 'offline-message': showOfflineMessage(); break;
+			case 'termination-messagebox': showView('welcome-splash'); break;
+			default: showView('error-message');break;
+		}
+	}
+
+   
+	
+	//here we go...
+	showView('chat-box');
+	$('#a-getnewmessages').click(function(){
+		$('#operator_hash').val('a85ba933');
+		$('#loopGetNewChatMessages').val(1);
+		LoopGetNewChatMessages(); 
+		 
+		
+	});
+
+	//var timestamp = new Date().getTime();
+	//formatTime(timestamp);
+	//showView('show-auth');
+	//$('#a-auth-form').click();
+	
+	$('#a-cancelgetmess').click(function(){
+		$('#loopGetNewChatMessages').val(0);
+	});
+	
+
+	function LoopGetNewChatMessages(){
+	 	setTimeout(function() {
+            if ($('#loopGetNewChatMessages').val() == 0) {
+                return;
+            }
+
+            // Do what you need to do   
+            GetNewChatMessages();
+            
+            LoopGetNewChatMessages();
+        }, 1000);	
+
+	 	
+	}
+		
+		
+	
+
+ 	function getTime(){
+	    	var formattedDate = new Date();
+	    	var d = formattedDate.getDate();
+	    	var month = formattedDate.getMonth();
+	        month = parseInt(month)+1;
+	    	var h = formattedDate.getHours();
+	    	var m = formattedDate.getMinutes();
+	    	var s = formattedDate.getSeconds();
+	    	var y = formattedDate.getFullYear();
+	    	timearray = {year : y, month: month, day : d, hour: h, minute:m, sec:s};
+			$.each(timearray, function(key, value){
+				var tmp = value.toString();
+				if(tmp.length < 2){
+					switch(key){
+						case 'month': month = '0' + tmp; break;
+						case 'day': d = '0' + tmp; break;
+						case 'hour': h = '0' + tmp; break;
+						case 'minute': m = '0' + tmp; break;
+						case 'sec': s = '0' + tmp; break;
+					}
+				}
+			});
+	    	
+	    	var datetime = y + '-' + month + '-' + d + ' ' + h + ':' + m + ':' + s;
+
+			
+			return datetime;
+    }
+
+	function GetNewChatMessages(){
+
+		
+		//toid = setTimeout(GetNewMessages, 5000);
+		
+		var message = "";
+		var posttimestamp = "";
+		var currenttimestamp = getTime();
+		console.log('currenttimestamp: ' + currenttimestamp);
+		
+		if($('#lastGetNewChatMessagesTimestamp').val() != ''){
+			posttimestamp = $('#lastGetNewChatMessagesTimestamp').val();
+		}
+		
+		console.log('posttimestamp: ' + posttimestamp);
+		//var timestamp = '2014-08-20 21:34:07';
+		var user_hash = $('#user_hash').val();
+		var operator_hash = $('#operator_hash').val();
+		var dialog_hash = $('#dialog_hash').val();
+		
+	
+		var getNewChatmessageResult  = $.ajax({
+			url: "http://chatclient/nusoap_client.php",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+			type: "POST",
+			async: false,
+			data: { call: 'GetNewChatMessages', dialog_hash: dialog_hash, posttimestamp: posttimestamp, currenttimestamp: currenttimestamp },
+			dataType: "json"
+		});
+
+		
+		getNewChatmessageResult.success(function(data){
+
+
+			//update posttimestamp for next request
+			$('#lastGetNewChatMessagesTimestamp').val(currenttimestamp);
+
+			console.log(data);	
+
+			var messages = [];
+			$.each(data, function(){
+				var p = this;
+				var tmp = '';
+				$.each(p, function(key, value){
+					if(key=='name'){
+						tmp += value + ': ';
+					}
+					else if(key=='message'){
+						tmp += value;
+					}
+				});
+				if(tmp!='')
+					messages.push(tmp);
+			});
+
+			if(messages.length == 0){
+				//alert('keine neuen nachrichten verfügbar');
+			}else{
+				var chatdialog = $('#chat-dialog').val() + '\n' + messages.join('\n');
+				$('#chat-dialog').val(chatdialog);
+			}
+			
+		});
+		getNewChatmessageResult.fail(function(jqXHR, textStatus){
+			console.log(textStatus);
+		});
+
+
+	}
+
+	function sendNewChatMessage(){
+		var message = $('#new-post').val();
+		var user_hash = $('#user_hash').val()
+		var dialog_hash = $('#dialog_hash').val()
+	
+		var sendChatmessageResult  = $.ajax({
+			url: "http://chatclient/nusoap_client.php",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+			type: "POST",
+			async: false,
+			data: { call: 'SendChatMessage', dialog_hash: dialog_hash, message: message },
+			dataType: "json"
+		});
+
+		sendChatmessageResult.success(function(data){
+		
+			var chatdialog = $('#chat-dialog').val() + '\n' + $('#name').val() + ': ' + $('#new-post').val();
+			$('#chat-dialog').val(chatdialog);
+			$('#new-post').val('');
+			
+			console.log(data);
+		});
+		sendChatmessageResult.fail(function(jqXHR, textStatus){
+			console.log(textStatus);
+		});
+
+
+	}
+	
+	function showView(view){
+
+		var array = view.split('&');
+		var errormessage = (view == 'error-message')?'error-message':null;
+		if(array.length > 1){
+			view = array[0];
+			if(array['1'] == 'error-message'){
+				errormessage = array[1];
+			}
+		}
+		
+		$("#error-message").hide();
+		$("#welcome-splash").hide();
+		$("#auth-form").hide();
+		$("#chat-box").hide();
+		$("#offline-message-box").hide();
+		$("#termination-message-box").hide();	
+		
+		switch(view){
+			case 'auth-form': 
+				$("#auth-form").show();
+				break;
+			
+			case 'welcome-splash': 
+				$("#welcome-splash").show();
+				break;
+			
+			case 'chat-box': 
+				$("#chat-box").show();
+				break;
+				
+			case 'send-chat-message': 
+				$("#chat-box").show();
+				break;
+			
+			case 'offline-message-box': 
+				$("#offline-message-box").show();
+				break;
+			
+			case 'termination-message-box': 
+				$("#termination-message-box").show();
+				break;
+			
+			default: break;//$("#error-message").show(); break;
+
+		}
+
+		if(errormessage != null){
+			$("#error-message").show();
+		}
+
+	}
+	
+
+
+	function GetAllChatMessages(){
+		var user_hash = $('#user_hash').val()
+		var userobject = { call: 'GetAllChatMessages', dialog_hash: dialog_hash, joinTable: 'user' };
+		var resGetAllMessages  = $.ajax({
+			url: "http://chatclient/nusoap_client.php",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+			type: "POST",
+			async: false,
+			data: userobject,
+			dataType: "json"
+		});
+	
+		resGetAllMessages.success(function(data){
+			var messages = [];
+			
+			$.each(data, function(){
+				var p = this;
+				var tmp = '';
+				$.each(p, function(key, value){
+					
+					if(key=='name')
+						//tmp +='<span class=\'dialog-text-client-name\'>' + value + '</span>: ';
+						tmp +=value + ': ';
+					else if(key=='message')
+						tmp +=value;
+				}); 
+				if(tmp != '')
+				 	messages.push(tmp);
+			});
+	
+			$('#chat-dialog').val(messages.join('\n'));
+			console.log(messages);
+		});
+		resGetAllMessages.fail(function(jqXHR, textStatus){
+			console.log(textStatus);
+		});
+	
+	}
+
+		
+	function InitChatRequest(){
+
+			var userdata = {};
+			userdata.name = $('#name').val()
+			userdata.email = $('#email').val();
+			userdata.call = "InitChatRequest";
+			
+			var request  = $.ajax({
+				url: "http://chatclient/nusoap_client.php",
+				contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+				type: "POST",
+				async: false,
+				data: userdata,
+				dataType: "json"
+			});
+		
+			request.success(function(data){
+				//alert('successsss');
+				//bind operator_hash and user_hash to hidden fields
+				console.log(data);
+				$.each(data, function( key, value ) {
+						
+					  if(key == 'operator_hash')
+						  $('#operator_hash').val(value);
+					  else if(key == 'dialog_hash');
+					  	  $('#dialog_hash').val(value);
+					  else if(key == 'user_hash')
+						  $('#user_hash').val(value);
+					  else if(key == 'status')
+						  $('#operator_status').val(value);
+				});
+
+
+			});	
+			request.fail(function(jqXHR, textStatus){
+				alert(textStatus);
+			});
+		
+
+	}
+
+
+});
+</script>
+</head>
+
+
+<body>
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A layout example that shows off a responsive product landing page.">
+<title>Chat-Box V.1.0</title>
+
+<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+
+
+<!--[if lte IE 8]>
+  
+    <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/grids-responsive-old-ie-min.css">
+  
+<![endif]-->
+<!--[if gt IE 8]><!-->
+  
+<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/grids-responsive-min.css">
+  
+<!--<![endif]-->
+  
+<!--[if lte IE 8]>
+	<link rel="stylesheet" href="css/layouts/marketing-old-ie.css">
+<![endif]-->
+<!--[if gt IE 8]><!-->
+<link rel="stylesheet" href="css/layouts/marketing.css">
+<!--<![endif]-->
+  
+
+
+
+<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+
+</head>
+<body>
+	<div id="main-wrapper">
+		<div class="chat-wrapper">
+			
+			<input type="hidden" id="operator_hash">
+			<input type="hidden" id="user_hash">
+			<input type="hidden" id="dialog_hash">
+			<input type="hidden" id="operator_status">
+			<input type="hidden" id="loopGetNewChatMessages">
+			<input type="hidden" id="lastGetNewChatMessagesTimestamp">
+		
+			<p id="error-message">
+			</p>
+
+			<div id="welcome-splash">
+				<h2  class="centered-h2">Chat Box v.1.0</h2>
+				
+				<a href="#" class="pure-button pure-button-primary centered-button" id="a-welcome-splash" >start</a>
+			</div>
+			
+			<div id="auth-form">
+			
+<!--				<p id="auth-error-message"></p>-->
+				<div class="pure-form pure-form-aligned"  >
+				    <fieldset>
+				        <div>
+				            <label class="form-label" for="name">Nachname</label>
+				            <input id="name" type="text" placeholder="Nachname" value="Bloxberg">
+				        </div>
+				
+				        <div>
+				            <label class="form-label" for="email">E-Mail</label>
+				            <input id="email" type="text" placeholder="E-Mail" value="bloxberg@gmail.de">
+				        </div>
+				        
+				        <div>
+				            <label class="form-label" for="request-case">Anfragegrund</label>
+				            <select id="request-case">
+				            	<option  >--- Bitte auswählen ---</option>
+				            	<option selected="selected">Kaufanfrage</option>
+				            	<option>Supportanfrage</option>
+				            	<option>Reklamation</option>
+				            </select>
+				        </div>
+						
+						<a href="#" class="pure-button pure-button-primary" id="a-auth-form" >senden</a>
+				
+				    </fieldset>
+		    	</div>
+			</div>
+			
+			<div id="chat-box">
+				<b>Chatbox v.1.0.</b><br>
+				<textarea readonly id="chat-dialog"></textarea>
+				<textarea id="new-post"></textarea>
+				<a href="#" class="pure-button pure-button-primary" id="a-getnewmessages">getnewmessages</a>
+				<a href="#" class="pure-button pure-button-primary" id="a-cancelgetmess">cancel</a>
+				<a href="#" class="pure-button pure-button-primary" id="a-send-chatmessage">senden</a>
+				<a href="#" class="pure-button pure-button-primary" id="a-logoff-chatbox" >abmelden</a>
+			</div>
+			
+			<div id="offline-message-box">
+				<b>Nachricht versenden.</b><br>
+				<textarea id="offline-message"></textarea>
+				<a href="#" class="pure-button pure-button-primary" id="a-send-offlinemessage" >senden</a>
+			</div>
+			
+			<div id="termination-message-box">
+				<b>Vielen Dank.</b><br>
+				<a href="#" class="pure-button pure-button-primary" id="a-termination-message-box" >zurück</a>
+			</div>
+		
+		</div>
+			
+	
+	</div>
+</body>
+</html>
+
+
