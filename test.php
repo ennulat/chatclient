@@ -1,5 +1,7 @@
 <?php
 
+//give a try
+
  $pics = array();
  $i = 0; 
     $dir = 'img/';
