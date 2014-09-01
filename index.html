@@ -28,462 +28,55 @@
 
 </style>
 
-
+<script type="text/javascript" src="http://chatclient/js/chat.js"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
 <script type="text/javascript">
+
+
 $(document).ready(function(){
 
-	function ViewController(status){
 
-		switch(status){
-			case 'welcome-splash':  showView('auth-form'); break;
-			case 'auth-form': var message = formValidation(); 
-							  if(message != 'ok'){
-							
-								  $('#error-message').html(message);
-								  showView('auth-form&error-message');
-		
-							  }else{
-
-								  //Init chat request
-								  InitChatRequest();
-								 
-								  var isOperatorOnline = false;
-								  if($('#operator_available').val() != '0')
-									  var isOperatorAvailable = true;
-
-								  if(isOperatorAvailable){
-									
-								  	showView('chat-box');
-
-								  	//wait for operator commitment
-								  	$('#LoopObserveOperatorCommitment').val(1)
-								  	if(LoopObserveOperatorCommitment() == true){
-
-										alert($('#operator_hash').val());
-									}
-					
-								  	
-								  	//GetNewChatMessages();
-								  	
-								  	
-								  }else{
-									alert('operator not available');
-									showView('offline-message-box');
-								  }
-							  }
-
-						      break;
-			case 'logoff-chatbox': showView('termination-message-box'); break;
-			case 'send-chatmessage': sendNewChatMessage(); break;
-			//case 'backtoauth-form': showAuthForm(); break;
-			//case 'chat-box': showChatBox(); break;
-			//case 'offline-message': showOfflineMessage(); break;
-			case 'termination-messagebox': showView('welcome-splash'); break;
-			default: showView('error-message');break;
-		}
-	}
-
-   
-	
 	//here we go...
-	showView('chat-box');
-	Test();
+	showView('welcome-splash');
 
+	$(document).ajaxStart(function() {
+		$('#spinner').show();
+	});
 
-
-
-
+	$(document).ajaxStop(function() {
+		$('#spinner').hide();
+	});
 	
-	$('#a-getnewmessages').click(function(){
-		$('#dialog_hash').val('##########');
+
+	$('a').click(function(){
+		ViewController(this.id);	
+	});
+
+	//if operater has confirmed chat dialog start LoopGetNewChatMessages
+	$('#dialog_status').change(function(){
+		$('#dialog_hash').val('8b27769258c6fcb0fb1322dc3dfe9f7c');
 		$('#loopGetNewChatMessages').val(1);
 		LoopGetNewChatMessages(); 
 	});
 
-	//var timestamp = new Date().getTime();
-	//formatTime(timestamp);
-	//showView('show-auth');
-	//$('#a-auth-form').click();
-	
-	$('#a-cancelgetmess').click(function(){
-		$('#loopGetNewChatMessages').val(0);
-	});
 
-
-	function Test(){
-
-		  //Init chat request
-		  InitChatRequest();
-		 
-		  var isOperatorOnline = false;
-		  if($('#operator_available').val() != '0')
-			  var isOperatorAvailable = true;
-
-		  if(isOperatorAvailable){
-			
-		  	showView('chat-box');	
-
-		  	//wait for operator commitment
-		  	$('#LoopObserveOperatorCommitment').val(1);
-		  	LoopObserveOperatorCommitment();
-			if($('#dialog_status').val() == '2'){//operator has accepted
-			
-				console.log('loopobserv: ' + $('#LoopObserveOperatorCommitment').val());//cancel observer loop
-				console.log('ophash: ' +$('#operator_hash').val());
-				console.log('userhash: ' +$('#user_hash').val());
-
-				//GetNewChatMessages();
-				$('#loopGetNewChatMessages').val(1);
-				LoopGetNewChatMessages(); 
-			}else{
-
-				console.log('something went wrong, loopobservstatus');
-			}
-		  	
-		  }else{
-			alert('operator not available');
-			showView('offline-message-box');
-		  }
-
-	}
-
-	function LoopObserveOperatorCommitment(){
-		setTimeout(function() {
-            if ($('#LoopObserveOperatorCommitment').val() == 0) {
-                return;
-            }
-
-            // Do what you need to do   
-            ObserveOperatorCommitment();
-            
-            LoopObserveOperatorCommitment();
-        }, 500);	
-
-		
-
-	}
-
-	function ObserveOperatorCommitment(){
-	
-		$.ajax({
-			url: 'http://chatclient/nusoap_client.php',
-		    //data: {call: 'ObserveOperatorCommitment', dialog_hash: $('#dialog_hash').val()} ,
-		    data: {call: 'ObserveOperatorCommitment', dialog_hash: $('#dialog_hash').val()} ,
-		    type: 'POST',
-		    dataType: 'JSON',
-		    async: false
-		}).success(function(data){
-			var tmp = data;
-			$.each(tmp, function(key, value){
-				if(key=='status' && value=='2'){//operator has accepted?
-					$('#LoopObserveOperatorCommitment').val(0);//cancel observer loop
-					$('#operator_hash').val(data.operator_hash);
-					$('#dialog_status').val(value);
-				}
-			});
-
-<!--			console.log($('#LoopObserveOperatorCommitment').val());-->
-<!--			console.log($('#operator_hash').val());-->
-<!--			console.log($('#user_hash').val());-->
-<!--			console.log($('#operator_hash').val());-->
-
-		}).fail(function(xHttp, statustext){
-			console.log(statustext);
-			alert(statustext);
-		});
-
-	}
-
-	
-	function LoopGetNewChatMessages(){
-	 	setTimeout(function() {
-            if ($('#loopGetNewChatMessages').val() == 0) {
-                return;
-            }
-
-            // Do what you need to do   
-            GetNewChatMessages();
-            
-            LoopGetNewChatMessages();
-        }, 1000);	
-
-	 	
-	}
-		
-		
-	
-
- 	function getTime(){
-	    	var formattedDate = new Date();
-	    	var d = formattedDate.getDate();
-	    	var month = formattedDate.getMonth();
-	        month = parseInt(month)+1;
-	    	var h = formattedDate.getHours();
-	    	var m = formattedDate.getMinutes();
-	    	var s = formattedDate.getSeconds();
-	    	var y = formattedDate.getFullYear();
-	    	timearray = {year : y, month: month, day : d, hour: h, minute:m, sec:s};
-			$.each(timearray, function(key, value){
-				var tmp = value.toString();
-				if(tmp.length < 2){
-					switch(key){
-						case 'month': month = '0' + tmp; break;
-						case 'day': d = '0' + tmp; break;
-						case 'hour': h = '0' + tmp; break;
-						case 'minute': m = '0' + tmp; break;
-						case 'sec': s = '0' + tmp; break;
-					}
-				}
-			});
-	    	
-	    	var datetime = y + '-' + month + '-' + d + ' ' + h + ':' + m + ':' + s;
-
-			
-			return datetime;
-    }
-
-	function GetNewChatMessages(){
-
-		
-		//toid = setTimeout(GetNewMessages, 5000);
-		
-		var message = "";
-		var posttimestamp = "";
-		var currenttimestamp = getTime();
-		console.log('currenttimestamp: ' + currenttimestamp);
-		
-		if($('#lastGetNewChatMessagesTimestamp').val() != ''){
-			posttimestamp = $('#lastGetNewChatMessagesTimestamp').val();
-		}
-		
-		console.log('posttimestamp: ' + posttimestamp);
-		//var timestamp = '2014-08-20 21:34:07';
-		var user_hash = $('#user_hash').val();
-		var operator_hash = $('#operator_hash').val();
-		var dialog_hash = $('#dialog_hash').val();
-		
-	
-		var getNewChatmessageResult  = $.ajax({
-			url: "http://chatclient/nusoap_client.php",
-			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-			type: "POST",
-			async: false,
-			data: { call: 'GetNewChatMessages', dialog_hash: dialog_hash, posttimestamp: posttimestamp, currenttimestamp: currenttimestamp },
-			dataType: "json"
-		});
-
-		
-		getNewChatmessageResult.success(function(data){
-
-
-			//update posttimestamp for next request
-			$('#lastGetNewChatMessagesTimestamp').val(currenttimestamp);
-
-			console.log(data);	
-
-			var messages = [];
-			$.each(data, function(){
-				var p = this;
-				var tmp = '';
-				$.each(p, function(key, value){
-					if(key=='name'){
-						tmp += value + ': ';
-					}
-					else if(key=='message'){
-						tmp += value;
-					}
-				});
-				if(tmp!='')
-					messages.push(tmp);
-			});
-
-			if(messages.length == 0){
-				//alert('keine neuen nachrichten verfügbar');
-			}else{
-				var chatdialog = $('#chat-dialog').val() + '\n' + messages.join('\n');
-				$('#chat-dialog').val(chatdialog);
-			}
-			
-		});
-		getNewChatmessageResult.fail(function(jqXHR, textStatus){
-			console.log(textStatus);
-		});
-
-
-	}
-
-	function sendNewChatMessage(){
-		var message = $('#new-post').val();
-		var user_hash = $('#user_hash').val()
-		var dialog_hash = $('#dialog_hash').val()
-	
-		var sendChatmessageResult  = $.ajax({
-			url: "http://chatclient/nusoap_client.php",
-			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-			type: "POST",
-			async: false,
-			data: { call: 'SendChatMessage', dialog_hash: dialog_hash, message: message },
-			dataType: "json"
-		});
-
-		sendChatmessageResult.success(function(data){
-		
-			var chatdialog = $('#chat-dialog').val() + '\n' + $('#name').val() + ': ' + $('#new-post').val();
-			$('#chat-dialog').val(chatdialog);
-			$('#new-post').val('');
-			
-			console.log(data);
-		});
-		sendChatmessageResult.fail(function(jqXHR, textStatus){
-			console.log(textStatus);
-		});
-
-
-	}
-	
-	function showView(view){
-
-		var array = view.split('&');
-		var errormessage = (view == 'error-message')?'error-message':null;
-		if(array.length > 1){
-			view = array[0];
-			if(array['1'] == 'error-message'){
-				errormessage = array[1];
-			}
-		}
-		
-		$("#error-message").hide();
-		$("#welcome-splash").hide();
-		$("#auth-form").hide();
-		$("#chat-box").hide();
-		$("#offline-message-box").hide();
-		$("#termination-message-box").hide();	
-		
-		switch(view){
-			case 'auth-form': 
-				$("#auth-form").show();
-				break;
-			
-			case 'welcome-splash': 
-				$("#welcome-splash").show();
-				break;
-			
-			case 'chat-box': 
-				$("#chat-box").show();
-				break;
-				
-			case 'send-chat-message': 
-				$("#chat-box").show();
-				break;
-			
-			case 'offline-message-box': 
-				$("#offline-message-box").show();
-				break;
-			
-			case 'termination-message-box': 
-				$("#termination-message-box").show();
-				break;
-			
-			default: break;//$("#error-message").show(); break;
-
-		}
-
-		if(errormessage != null){
-			$("#error-message").show();
-		}
-
-	}
-	
-
-
-	function GetAllChatMessages(){
-		var user_hash = $('#user_hash').val()
-		var userobject = { call: 'GetAllChatMessages', dialog_hash: dialog_hash, joinTable: 'user' };
-		var resGetAllMessages  = $.ajax({
-			url: "http://chatclient/nusoap_client.php",
-			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-			type: "POST",
-			async: false,
-			data: userobject,
-			dataType: "json"
-		});
-	
-		resGetAllMessages.success(function(data){
-			var messages = [];
-			
-			$.each(data, function(){
-				var p = this;
-				var tmp = '';
-				$.each(p, function(key, value){
-					
-					if(key=='name')
-						//tmp +='<span class=\'dialog-text-client-name\'>' + value + '</span>: ';
-						tmp +=value + ': ';
-					else if(key=='message')
-						tmp +=value;
-				}); 
-				if(tmp != '')
-				 	messages.push(tmp);
-			});
-	
-			$('#chat-dialog').val(messages.join('\n'));
-			console.log(messages);
-		});
-		resGetAllMessages.fail(function(jqXHR, textStatus){
-			console.log(textStatus);
-		});
-	
-	}
-
-		
-	function InitChatRequest(){
-
-			var userdata = {};
-			userdata.name = $('#name').val()
-			userdata.email = $('#email').val();
-			userdata.call = "InitChatRequest";
-			
-			var request  = $.ajax({
-				url: "http://chatclient/nusoap_client.php",
-				contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-				type: "POST",
-				async: false,
-				data: userdata,
-				dataType: "json"
-			});
-		
-			request.success(function(data){
-				//alert('successsss');
-				//bind operator_hash and user_hash to hidden fields
-				//console.log(data);
-				$.each(data, function( key, value ) {
-						
-					  if(key == 'dialog_hash'){
-					  	  //$('#dialog_hash').val(value);
-					  	  $('#dialog_hash').val('8b27769258c6fcb0fb1322dc3dfe9f7c');
-					  }
-					  else if(key == 'user_hash'){
-						  //$('#user_hash').val(value);
-						  $('#user_hash').val('482a5181b7d5d84fa57f2677a43d8757');
-					  }
-					  else if(key == 'operator_available'){
-						  $('#operator_available').val(value);
-					  }
-				});
-
-
-			});	
-			request.fail(function(jqXHR, textStatus){
-				alert(textStatus);
-			});
-		
-
-	}
-
+<!--	$('#getnewmessages').click(function(){-->
+<!--		$('#dialog_hash').val('8b27769258c6fcb0fb1322dc3dfe9f7c');-->
+<!--		$('#loopGetNewChatMessages').val(1);-->
+<!--		LoopGetNewChatMessages(); -->
+<!--		-->
+<!--	});-->
+<!---->
+<!--	$('#cancelgetmess').click(function(){-->
+<!--		$('#loopGetNewChatMessages').val(0);-->
+<!--	});-->
 
 });
+
+
+
+
 </script>
 </head>
 
@@ -536,25 +129,25 @@ $(document).ready(function(){
 			<input type="hidden" id="operator_available">
 			<input type="hidden" id="dialog_status">
 			
-<!--			<input type="hidden" id="operator_status">-->
-			<input type="hidden" id="loopGetNewChatMessages">
-			                         
+			<input type="hidden" id="loopGetNewChatMessages">          
 			<input type="hidden" id="LoopObserveOperatorCommitment">
-			
 			<input type="hidden" id="lastGetNewChatMessagesTimestamp">
+		
+		
+			<div id="spinner">
+			    <img src="/img/ajax-loader4.gif" alt="Loading..."/>
+			</div>
 		
 			<p id="error-message">
 			</p>
 
 			<div id="welcome-splash">
 				<h2  class="centered-h2">Chat Box v.1.0</h2>
-				
-				<a href="#" class="pure-button pure-button-primary centered-button" id="a-welcome-splash" >start</a>
+				<a href="#" class="pure-button pure-button-primary centered-button" id="show-auth-form" >start</a>
 			</div>
 			
 			<div id="auth-form">
 			
-<!--				<p id="auth-error-message"></p>-->
 				<div class="pure-form pure-form-aligned"  >
 				    <fieldset>
 				        <div>
@@ -577,7 +170,7 @@ $(document).ready(function(){
 				            </select>
 				        </div>
 						
-						<a href="#" class="pure-button pure-button-primary" id="a-auth-form" >senden</a>
+						<a href="#" class="pure-button pure-button-primary" id="submit-auth-form" >senden</a>
 				
 				    </fieldset>
 		    	</div>
@@ -587,22 +180,27 @@ $(document).ready(function(){
 				<b>Chatbox v.1.0.</b><br>
 				<textarea readonly id="chat-dialog"></textarea>
 				<textarea id="new-post"></textarea>
-				<a href="#" class="pure-button pure-button-primary" id="a-getnewmessages">getnewmessages</a>
-				<a href="#" class="pure-button pure-button-primary" id="a-cancelgetmess">cancel</a>
-				<a href="#" class="pure-button pure-button-primary" id="a-send-chatmessage">senden</a>
-				<a href="#" class="pure-button pure-button-primary" id="a-logoff-chatbox" >abmelden</a>
+				<a href="#" class="pure-button pure-button-primary" id="getnewmessages">test getnewmessages</a>
+				<a href="#" class="pure-button pure-button-primary" id="cancelgetmess">test cancel</a>
+				<a href="#" class="pure-button pure-button-primary" id="send-chatmessage">senden</a>
+				<a href="#" class="pure-button pure-button-primary" id="logoff">abmelden</a>
 			</div>
 			
 			<div id="offline-message-box">
 				<b>Nachricht versenden.</b><br>
 				<textarea id="offline-message"></textarea>
-				<a href="#" class="pure-button pure-button-primary" id="a-send-offlinemessage" >senden</a>
+				<a href="#" class="pure-button pure-button-primary" id="send-offlinemessage">senden</a>
 			</div>
 			
-			<div id="termination-message-box">
-				<b>Vielen Dank.</b><br>
-				<a href="#" class="pure-button pure-button-primary" id="a-termination-message-box" >zurück</a>
+			<div id="termination_offline_message">
+				<p>Vielen Dank, es wurde eine Nachricht hinterlassen.</p>
+				<a href="#" class="pure-button pure-button-primary" id="show-welcome-splash">show splashscreen</a>
 			</div>
+			<div id="termination_chat">
+				<p>Vielen Dank und auf wiedersehen.</p>
+				<a href="#" class="pure-button pure-button-primary" id="show-welcome-splash">show splashscreen</a>
+			</div>
+	
 		
 		</div>
 			

@@ -34,6 +34,10 @@ if(isset($_POST['call'])){
 				//$result =$client->call("SendChatMessage", array(array("sendby" => "482a5181b7d5d84fa57f2677a43d8757", "message" => "random message: ".hash(md5,time())."")));
 				$result =$client->call("SendChatMessage", array(array("dialog_hash" => $_POST['dialog_hash'], "message" => $_POST['message'])));
 				break;
+			case 'SendMessage':
+				//$result =$client->call("SendChatMessage", array(array("sendby" => "482a5181b7d5d84fa57f2677a43d8757", "message" => "random message: ".hash(md5,time())."")));
+				$result =$client->call("SendMessage", array(array("user_hash" => $_POST['user_hash'], "message" => $_POST['message'])));
+				break;
 			case 'InitChatRequest':
 				helper::writelog($_POST);
 				//$result =$client->call("InitChatRequest", array(array("name" => "Hogan", "email"=>"hogan@gmail.de")));
