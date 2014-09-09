@@ -17,16 +17,21 @@ if(isset($_POST['call'])){
 
 	try{
 		switch($_POST['call']){
-			case 'ObserveOperatorCommitment':
+			case 'SetUserOperatorStatus':
+				//helper::writelog($_POST);
 				//$result =$client->call("GetAllChatMessages", array(array("sendby" => "482a5181b7d5d84fa57f2677a43d8757", "joinTable" => "user")));
-				$result =$client->call("ObserveOperatorCommitment", array("dialog_hash" => $_POST['dialog_hash']));
+				$result =$client->call("SetUserOperatorStatus", array(array("dialog_hash"=>$_POST['dialog_hash'], "status" => $_POST['status'])));
+				break;
+			case 'ObserveUserOperatorCommitment':
+				//$result =$client->call("GetAllChatMessages", array(array("sendby" => "482a5181b7d5d84fa57f2677a43d8757", "joinTable" => "user")));
+				$result =$client->call("ObserveUserOperatorCommitment", array("dialog_hash" => $_POST['dialog_hash']));
 				break;
 			case 'GetAllChatMessages':
 				//$result =$client->call("GetAllChatMessages", array(array("sendby" => "482a5181b7d5d84fa57f2677a43d8757", "joinTable" => "user")));
 				$result =$client->call("GetAllChatMessages", array(array("dialog_hash" => $_POST['dialog_hash'])));
 				break;
 			case 'GetNewChatMessages':
-				helper::writelog($_POST);
+				
 				//$result =$client->call("GetNewChatMessages", array(array("sendby" => "482a5181b7d5d84fa57f2677a43d8757", "timestamp" => "2014-08-14 16:57:01", "joinTable" => "user")));
 				$result =$client->call("GetNewChatMessages", array(array("dialog_hash" => $_POST['dialog_hash'], "posttimestamp" => $_POST['posttimestamp'], "currenttimestamp" => $_POST['currenttimestamp'])));
 				break;
@@ -39,12 +44,12 @@ if(isset($_POST['call'])){
 				$result =$client->call("SendMessage", array(array("user_hash" => $_POST['user_hash'], "message" => $_POST['message'])));
 				break;
 			case 'InitChatRequest':
-				helper::writelog($_POST);
+			
 				//$result =$client->call("InitChatRequest", array(array("name" => "Hogan", "email"=>"hogan@gmail.de")));
 				$result =$client->call("InitChatRequest", array(array("name" => $_POST['name'], "email"=>$_POST['email'])));
 				break;
 			case 'GetAllOperators':
-				helper::writelog($_POST);
+			
 				$result =$client->call("GetAllOperators", array());
 				break;
 			case 'Test':

@@ -36,18 +36,9 @@
 
 $(document).ready(function(){
 
-
+	
 	//here we go...
 	showView('welcome-splash');
-
-	$(document).ajaxStart(function() {
-		$('#spinner').show();
-	});
-
-	$(document).ajaxStop(function() {
-		$('#spinner').hide();
-	});
-	
 
 	$('a').click(function(){
 		ViewController(this.id);	
@@ -55,7 +46,6 @@ $(document).ready(function(){
 
 	//if operater has confirmed chat dialog start LoopGetNewChatMessages
 	$('#dialog_status').change(function(){
-		$('#dialog_hash').val('8b27769258c6fcb0fb1322dc3dfe9f7c');
 		$('#loopGetNewChatMessages').val(1);
 		LoopGetNewChatMessages(); 
 	});
@@ -121,22 +111,23 @@ $(document).ready(function(){
 </head>
 <body>
 	<div id="main-wrapper">
+	
 		<div class="chat-wrapper">
 			
 			<input type="hidden" id="operator_hash">
 			<input type="hidden" id="user_hash">
 			<input type="hidden" id="dialog_hash">
-			<input type="hidden" id="operator_available">
+			<input type="hidden" id="operator_available">	
 			<input type="hidden" id="dialog_status">
 			
 			<input type="hidden" id="loopGetNewChatMessages">          
-			<input type="hidden" id="LoopObserveOperatorCommitment">
+			<input type="hidden" id="LoopObserveUserOperatorCommitment">
 			<input type="hidden" id="lastGetNewChatMessagesTimestamp">
 		
 		
-			<div id="spinner">
-			    <img src="/img/ajax-loader4.gif" alt="Loading..."/>
-			</div>
+<!--			<img class="ajaxloaderpic" src="/img/ajax-loader4.gif" alt="Loading..."/>-->
+			
+			
 		
 			<p id="error-message">
 			</p>
@@ -152,12 +143,14 @@ $(document).ready(function(){
 				    <fieldset>
 				        <div>
 				            <label class="form-label" for="name">Nachname</label>
-				            <input id="name" type="text" placeholder="Nachname" value="Bloxberg">
+<!--				            <input id="name" type="text" placeholder="Nachname" value="Bloxberg">-->
+				            <input id="name" type="text" placeholder="Nachname" value="">
 				        </div>
 				
 				        <div>
 				            <label class="form-label" for="email">E-Mail</label>
-				            <input id="email" type="text" placeholder="E-Mail" value="bloxberg@gmail.de">
+<!--				            <input id="email" type="text" placeholder="E-Mail" value="bloxberg@gmail.de">-->
+				            <input id="email" type="text" placeholder="E-Mail" value="">
 				        </div>
 				        
 				        <div>
@@ -180,8 +173,8 @@ $(document).ready(function(){
 				<b>Chatbox v.1.0.</b><br>
 				<textarea readonly id="chat-dialog"></textarea>
 				<textarea id="new-post"></textarea>
-				<a href="#" class="pure-button pure-button-primary" id="getnewmessages">test getnewmessages</a>
-				<a href="#" class="pure-button pure-button-primary" id="cancelgetmess">test cancel</a>
+<!--				<a href="#" class="pure-button pure-button-primary" id="getnewmessages">test getnewmessages</a>-->
+<!--				<a href="#" class="pure-button pure-button-primary" id="cancelgetmess">test cancel</a>-->
 				<a href="#" class="pure-button pure-button-primary" id="send-chatmessage">senden</a>
 				<a href="#" class="pure-button pure-button-primary" id="logoff">abmelden</a>
 			</div>
@@ -193,11 +186,11 @@ $(document).ready(function(){
 			</div>
 			
 			<div id="termination_offline_message">
-				<p>Vielen Dank, es wurde eine Nachricht hinterlassen.</p>
+				<p>Vielen Dank, es wurde eine Nachricht verschickt.</p>
 				<a href="#" class="pure-button pure-button-primary" id="show-welcome-splash">show splashscreen</a>
 			</div>
 			<div id="termination_chat">
-				<p>Vielen Dank und auf wiedersehen.</p>
+				<p>Der Chatmodus wurde beendet, vielen Dank und auf wiedersehen.</p>
 				<a href="#" class="pure-button pure-button-primary" id="show-welcome-splash">show splashscreen</a>
 			</div>
 	

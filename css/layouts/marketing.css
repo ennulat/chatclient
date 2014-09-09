@@ -316,7 +316,7 @@ a.pure-button-primary {
 .chat-wrapper {
     /* absolute center .splash within .splash-container */
     width: 50%;
-   	height: 50%;
+   	height: 65%;
     margin: auto;
     position: absolute;
     top: 100px; left: 0; bottom: 0; right: 0;
@@ -330,6 +330,8 @@ a.pure-button-primary {
     font-weight: 100;
     border-radius: 5px;
     line-height: 1em;
+    padding-top:50px;
+    background-color:lightslategray;
     
 }
 
@@ -375,16 +377,14 @@ a.pure-button-primary {
 	color: blue;
 }
 
-#spinner{
+.ajaxloaderpic{
 	display: none;
-    width:100px;
-    height: 100px;
-    position: fixed;
+    width: 80px;
+    height: 80px;
+    position: relative;
     top: 50%;
     left: 50%;
     text-align:center;
-    margin-left: -50px;
-    margin-top: -100px;
-    z-index:2;
+    z-index:999;
     overflow: auto;
 }

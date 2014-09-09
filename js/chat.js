@@ -1,24 +1,30 @@
+function resetValuesAndActions(){
+	//reset all fields & actions
+	$('#email').val('');
+	$('#name').val('');
+	$('#loopGetNewChatMessages').val(0);
+	$('#LoopObserveUserOperatorCommitment').val(0);
+	$('#lastGetNewChatMessagesTimestamp').val('');
+	$('#offline-message').val('');
+	$('#operator_hash').val('');
+	$('#chat_dialog').val('');
+	$('#user_hash').val('');	
+	$('#dialog_hash').val('');
+	$('#operator_available').val('');
+	$('#dialog_status').val('');
+}
+
 function ViewController(status){
 
 		switch(status){
 			case 'show-welcome-splash':  
-									//reset all fields & actions
-									$('#loopGetNewChatMessages').val(0);
-									$('#LoopObserveOperatorCommitment').val(0);
-									$('#lastGetNewChatMessagesTimestamp').val('');
-									$('#operator_hash').val('');
-									$('#chat_dialog').val('');
-									$('#user_hash').val('');
-									$('#dialog_hash').val('');
-									$('#operator_available').val('');
-									$('#dialog_status').val('');
-									
+									resetValuesAndActions();
 									showView('welcome-splash'); 
 									break;
 			case 'show-auth-form':  showView('auth-form'); break;
 			case 'submit-auth-form': 
 							  if(!formValidation()){
-							
+								  var message = 'bitte namen & email angeben sowie grund auswählen.';
 								  $('#error-message').html(message);
 								  showView('auth-form&error-message');
 		
@@ -31,8 +37,8 @@ function ViewController(status){
 									
 									showView('chat-box');
 								  	//wait for operator commitment
-								  	$('#LoopObserveOperatorCommitment').val(1);
-								  	LoopObserveOperatorCommitment();
+								  	$('#LoopObserveUserOperatorCommitment').val(1);
+								  	LoopObserveUserOperatorCommitment();
 
 								  }else{
 									showView('offline-message-box');
@@ -40,7 +46,7 @@ function ViewController(status){
 							  }
 						      break;
 			case 'send-chatmessage': sendNewChatMessage(); break;
-			case 'send-offlinemessage': sendOfflineMessage(); 
+			case 'send-offlinemessage': sendMessage(); 
 										showView('termination_offline_message'); 
 										break;
 			case 'logoff': showView('termination_chat'); break;
@@ -54,58 +60,59 @@ function Test(){
 	  alert('test');
 }
 
-function LoopObserveOperatorCommitment(){
+function LoopObserveUserOperatorCommitment(){
 	
 	setTimeout(function() {
-      if ($('#LoopObserveOperatorCommitment').val() == 0) {
+      if ($('#LoopObserveUserOperatorCommitment').val() == 0) {
           return;
       }
 
       // Do what you need to do   
-      ObserveOperatorCommitment();
+      ObserveUserOperatorCommitment();
 
-      LoopObserveOperatorCommitment();
+      LoopObserveUserOperatorCommitment();
 	}, 1000);	
 
 }
 
-function ObserveOperatorCommitment(){
+function ObserveUserOperatorCommitment(){
 
 	var dialog_hash = $('#dialog_hash').val();
-	var resultObserveOperatorCommitment = $.ajax({
+	var resultObserveUserOperatorCommitment = $.ajax({
 		url: "http://chatclient/nusoap_client.php",
 		contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 		type: "POST",
 		async: false,
-		data: { call: 'ObserveOperatorCommitment', dialog_hash: dialog_hash },
+		data: { call: 'ObserveUserOperatorCommitment', dialog_hash: dialog_hash },
 		dataType: "json"
 	});
 	
-	resultObserveOperatorCommitment.success(function(data){
+	resultObserveUserOperatorCommitment.success(function(data){
 		
 		var tmp = data;
 		$.each(tmp, function(key, value){
 		
 				if(key=="status"){//operator has accepted?
 					if(value=="2"){
-						$('#LoopObserveOperatorCommitment').val(0);//cancel observer loop
 						$('#operator_hash').val(data.operator_hash);
+						
+						//trigger löst den nachrichtenabruf intervall auf..
 						$('#dialog_status').val(value).trigger('change');
 						console.log('dialog_status: ' + $('#dialog_status').val());
+					}else if(value == "3"){
+						$('#LoopObserveUserOperatorCommitment').val(0);//cancel observer loop
+						$('#dialog_status').val(value);//chat dialog was finished
+						$('#loopGetNewChatMessages').val(0);//nachrichtenabruf intervall stoppen
+						showView('termination_chat');
 					}
 				
-				}
+				}else if(key=="error")
+					alert(value);
 		});
 		
-
-//		console.log($('#LoopObserveOperatorCommitment').val())
-//	    console.log($('#operator_hash').val());
-//		console.log($('#user_hash').val());
-//		console.log($('#operator_hash').val());
-
 	});
 
-	resultObserveOperatorCommitment.fail(function(xHttp, statustext){
+	resultObserveUserOperatorCommitment.fail(function(xHttp, statustext){
 		console.log(statustext);
 		alert(statustext);
 	});
@@ -123,7 +130,7 @@ function ObserveOperatorCommitment(){
             GetNewChatMessages();
     
             LoopGetNewChatMessages();
-        }, 1000);	
+        }, 500);	
 
 	}
 	
@@ -208,7 +215,8 @@ function GetNewChatMessages(){
 			}
 			else if(key=='message'){
 				tmp += value;
-			}
+			}else if(key=="error")
+				alert(value);
 		});
 		if(tmp!='')
 			messages.push(tmp);
@@ -224,6 +232,12 @@ function GetNewChatMessages(){
 			var chatdialog = $('#chat-dialog').val() + '\n' + messages.join('\n');
 			$('#chat-dialog').val(chatdialog);
 		}
+		
+		$('#chat-dialog').animate({	
+		    scrollTop:$('#chat-dialog')[0].scrollHeight - $('#chat-dialog').height()
+		},1000,function(){
+		    
+		});
 	}
 		
 	});
@@ -265,10 +279,10 @@ function sendNewChatMessage(){
 }
 
 function sendMessage(){
-	var message = $('#new-post').val();
+	var message = $('#offline-message').val();
 	var user_hash = $('#user_hash').val();
 
-	var sendChatmessageResult  = $.ajax({
+	var sendMessageResult  = $.ajax({
 		url: "http://chatclient/nusoap_client.php",
 		contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 		type: "POST",
@@ -277,21 +291,37 @@ function sendMessage(){
 		dataType: "json"
 	});
 
-	sendChatmessageResult.success(function(data){
-	
+	sendMessageResult.success(function(data){
+		console.log('sendmessage' + data);
 //		var chatdialog = $('#chat-dialog').val() + '\n' + $('#name').val() + ': ' + $('#new-post').val();
 //		$('#chat-dialog').val(chatdialog);
-		showView('termination_offline_message');
+		//showView('termination_offline_message');
 
 	});
-	sendChatmessageResult.fail(function(jqXHR, textStatus){
-		console.log(textStatus);
+	sendMessageResult.fail(function(jqXHR, textStatus){
+		console.log('sendmessage' + textStatus);
 	});
 
 
 }
 
 
+
+function setUserOperatorStatus(){
+	
+	$.ajax({
+		url: 'http://chatclient/nusoap_client.php',
+		data: {call: 'SetUserOperatorStatus', status: 3, dialog_hash: $('#dialog_hash').val()},
+		dataType: 'json',
+		type: 'post',
+		assync: false
+	}).success(function(data){
+		//console.log(data);
+	}).fail(function(xhr, textstatus){
+		//console.log(data);
+	});
+	
+}
 
 function showView(view){
 
@@ -332,10 +362,13 @@ function showView(view){
 			break;
 			
 		case 'termination_chat': 
+			setUserOperatorStatus();
+			resetValuesAndActions();
 			$("#termination_chat").show();
 			break;
 			
-		case 'send-offlinemessage': 
+		case 'termination_offline_message': 
+			resetValuesAndActions();
 			$("#termination_offline_message").show();
 			break;
 		
@@ -413,12 +446,10 @@ function InitChatRequest(){
 			$.each(data, function( key, value ) {
 					
 				  if(key == 'dialog_hash'){
-				  	  //$('#dialog_hash').val(value);
-				  	  $('#dialog_hash').val('8b27769258c6fcb0fb1322dc3dfe9f7c');
+				  	  $('#dialog_hash').val(value);
 				  }
 				  else if(key == 'user_hash'){
-					  //$('#user_hash').val(value);
-					  $('#user_hash').val('482a5181b7d5d84fa57f2677a43d8757');
+					  $('#user_hash').val(value);
 				  }
 				  else if(key == 'operator_available'){
 					  $('#operator_available').val(value);
